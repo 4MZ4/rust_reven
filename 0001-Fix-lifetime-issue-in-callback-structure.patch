@@ -1,0 +1,73 @@
+From 74da0b323e0f7b2411a76418fac26a57e4b71f05 Mon Sep 17 00:00:00 2001
+From: Hamza <32337304+4MZ4@users.noreply.github.com>
+Date: Thu, 2 May 2024 14:14:42 +0200
+Subject: [PATCH] Fix lifetime issue in callback structure
+
+---
+ src/changeme.rs | 27 +++++++++++++++++----------
+ 1 file changed, 17 insertions(+), 10 deletions(-)
+
+diff --git a/src/changeme.rs b/src/changeme.rs
+index 5a33381..c4dd963 100644
+--- a/src/changeme.rs
++++ b/src/changeme.rs
+@@ -1,14 +1,15 @@
++use std::sync::Arc;
+ pub trait CallbackData {}
+ 
+ #[derive(Debug)]
+-pub struct MyCallbackData<'a> {
+-    data: &'a [u8],
++pub struct MyCallbackData {//pub struct MyCallbackData<'a> {
++    pub data: Arc<[u8]>, //data: &'a [u8],
+ }
+ 
+-impl<'a> CallbackData for MyCallbackData<'a> {}
++impl CallbackData for MyCallbackData {} //impl<'a> CallbackData for MyCallbackData<'a> {}
+ 
+ pub struct MyCallback<T: CallbackData> {
+-    callback: Box<dyn Fn(&T)>,
++    pub callback: Box<dyn Fn(&T)>,
+ }
+ 
+ pub trait MyTrait<T: CallbackData> {
+@@ -17,12 +18,12 @@ pub trait MyTrait<T: CallbackData> {
+ }
+ 
+ pub struct MyStruct<T: CallbackData> {
+-    callbacks: Vec<MyCallback<T>>,
+-    data: [u8; 3],
++    pub callbacks: Vec<MyCallback<T>>,
++    pub data: [u8; 3],
+ }
+ 
+-impl<'a> MyTrait<MyCallbackData<'a>> for MyStruct<MyCallbackData<'a>> {
+-    fn set_callback(&mut self, cb: MyCallback<MyCallbackData<'a>>) {
++impl MyTrait<MyCallbackData> for MyStruct<MyCallbackData> {     //impl<'a> MyTrait<MyCallbackData<'a>> for MyStruct<MyCallbackData<'a>> {
++    fn set_callback(&mut self, cb: MyCallback<MyCallbackData>) {    //    fn set_callback(&mut self, cb: MyCallback<MyCallbackData<'a>>) {
+         self.callbacks.push(cb);
+     }
+ 
+@@ -30,10 +31,16 @@ impl<'a> MyTrait<MyCallbackData<'a>> for MyStruct<MyCallbackData<'a>> {
+ 
+         for cb in &self.callbacks {
+             let cb_data = MyCallbackData {
+-                data: &self.data,
++                data: Arc::clone(&self.get_arc_data()), //data: &self.data,
+             };
+ 
+             (cb.callback)(&cb_data);
+         }
+     }
+-}
+\ No newline at end of file
++}
++// 
++impl<T: CallbackData> MyStruct<T> {
++    fn get_arc_data(&self) -> Arc<[u8]> {
++        Arc::new(self.data)
++    }
++}
+-- 
+2.34.1
+
