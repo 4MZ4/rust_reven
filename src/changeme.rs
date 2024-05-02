@@ -1,14 +1,15 @@
+use std::sync::Arc;
 pub trait CallbackData {}
 
 #[derive(Debug)]
-pub struct MyCallbackData<'a> {
-    data: &'a [u8],
+pub struct MyCallbackData {//pub struct MyCallbackData<'a> {
+    pub data: Arc<[u8]>, //data: &'a [u8],
 }
 
-impl<'a> CallbackData for MyCallbackData<'a> {}
+impl CallbackData for MyCallbackData {} //impl<'a> CallbackData for MyCallbackData<'a> {}
 
 pub struct MyCallback<T: CallbackData> {
-    callback: Box<dyn Fn(&T)>,
+    pub callback: Box<dyn Fn(&T)>,
 }
 
 pub trait MyTrait<T: CallbackData> {
@@ -17,12 +18,12 @@ pub trait MyTrait<T: CallbackData> {
 }
 
 pub struct MyStruct<T: CallbackData> {
-    callbacks: Vec<MyCallback<T>>,
-    data: [u8; 3],
+    pub callbacks: Vec<MyCallback<T>>,
+    pub data: [u8; 3],
 }
 
-impl<'a> MyTrait<MyCallbackData<'a>> for MyStruct<MyCallbackData<'a>> {
-    fn set_callback(&mut self, cb: MyCallback<MyCallbackData<'a>>) {
+impl MyTrait<MyCallbackData> for MyStruct<MyCallbackData> {     //impl<'a> MyTrait<MyCallbackData<'a>> for MyStruct<MyCallbackData<'a>> {
+    fn set_callback(&mut self, cb: MyCallback<MyCallbackData>) {    //    fn set_callback(&mut self, cb: MyCallback<MyCallbackData<'a>>) {
         self.callbacks.push(cb);
     }
 
@@ -30,10 +31,16 @@ impl<'a> MyTrait<MyCallbackData<'a>> for MyStruct<MyCallbackData<'a>> {
 
         for cb in &self.callbacks {
             let cb_data = MyCallbackData {
-                data: &self.data,
+                data: Arc::clone(&self.get_arc_data()), //data: &self.data,
             };
 
             (cb.callback)(&cb_data);
         }
+    }
+}
+// 
+impl<T: CallbackData> MyStruct<T> {
+    fn get_arc_data(&self) -> Arc<[u8]> {
+        Arc::new(self.data)
     }
 }
