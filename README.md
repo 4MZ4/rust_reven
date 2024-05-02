@@ -1,8 +1,8 @@
-###Mission
+### Mission
 You are trying to store multiple callbacks in MyStruct and call them with a concrete type in the do_something method.
 Specializing MyStruct (which is parametrized with the argument type of the closure) introduced a lifetime issue that has to be fixed.
 
-###Goal:
+### Goal:
 - Please detail what is the problem in a specific text file
 - Provide a solution that you would propose to fix it
 - Add the patched code and documentation
@@ -10,9 +10,9 @@ Specializing MyStruct (which is parametrized with the argument type of the closu
 - Provide us a git patch with your work! 
 
 
-Hamza BOUKHRISS 02/05/2024
+# Hamza BOUKHRISS 02/05/2024
 
-###Result
+### Result
 ### Problem Explanation
 From the error message
 
